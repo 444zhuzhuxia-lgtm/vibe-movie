@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { motion, Variants, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -37,7 +37,7 @@ const MOOD_GLOW: Record<string, string> = {
   rain: "bg-blue-400 shadow-[0_0_10px_theme(colors.blue.400)]",
 };
 
-export default function ResonanceWall() {
+function ResonanceWallContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [records, setRecords] = useState<PublicRecord[]>([]);
@@ -284,5 +284,22 @@ export default function ResonanceWall() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ResonanceWall() {
+  return (
+    <Suspense
+      fallback={
+        <div className="relative min-h-screen bg-[#020617] text-slate-100 font-sans p-4 sm:p-8 pt-24">
+          <div className="fixed inset-0 z-0 bg-gradient-to-br from-[#020617] via-[#010b21] to-[#020617] opacity-90" />
+          <div className="relative z-10 max-w-7xl mx-auto flex items-center justify-center py-40">
+            <div className="w-8 h-8 border-2 border-sky-500/20 border-t-sky-500 rounded-full animate-spin" />
+          </div>
+        </div>
+      }
+    >
+      <ResonanceWallContent />
+    </Suspense>
   );
 }
