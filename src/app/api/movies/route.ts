@@ -26,6 +26,19 @@ export type MovieItem = {
   releaseDate: string | null;
 };
 
+type RawMovieItem = {
+  title?: { en?: string; zh?: string };
+  title_en?: string;
+  year?: number;
+  director?: string;
+  vibe_quote?: { en?: string; zh?: string };
+  reason?: { en?: string; zh?: string };
+};
+
+type AiMoviesPayload = {
+  movies?: RawMovieItem[];
+};
+
 // 🚀 优化点 2: 缩短单个请求超时时间，防止一个慢请求拖慢整个流程
 async function fetchTmdbMovie(params: {
   titleEn: string;
@@ -88,15 +101,34 @@ export async function POST(req: Request) {
 
     const aiData = await aiRes.json();
     const content = aiData.choices?.[0]?.message?.content;
-    const parsed = JSON.parse(content);
+    const parsed = JSON.parse(content) as AiMoviesPayload;
+    const rawMovies = Array.isArray(parsed.movies) ? parsed.movies : [];
 
     // 🚀 优化点 4: 完美的并行执行 (已经在使用 Promise.all，保持高效)
     const enriched = await Promise.all(
-      parsed.movies.map(async (m: any) => {
-        const tmdb = tmdbKey ? await fetchTmdbMovie({ titleEn: m.title_en, year: m.year, apiKey: tmdbKey }) : null;
+      rawMovies.map(async (m) => {
+        const safeTitleEn = (m.title_en ?? m.title?.en ?? "").trim();
+        const safeYear = typeof m.year === "number" ? m.year : new Date().getFullYear();
+        const tmdb = tmdbKey && safeTitleEn
+          ? await fetchTmdbMovie({ titleEn: safeTitleEn, year: safeYear, apiKey: tmdbKey })
+          : null;
         return {
           ...m,
-          title: { en: m.title_en, zh: tmdb?.titleZh || m.title.zh || m.title.en },
+          title_en: safeTitleEn,
+          year: safeYear,
+          title: {
+            en: safeTitleEn,
+            zh: tmdb?.titleZh || m.title?.zh || m.title?.en || safeTitleEn,
+          },
+          director: m.director ?? "Unknown",
+          vibe_quote: {
+            en: m.vibe_quote?.en ?? "",
+            zh: m.vibe_quote?.zh ?? "",
+          },
+          reason: {
+            en: m.reason?.en ?? "",
+            zh: m.reason?.zh ?? "",
+          },
           posterUrl: tmdb?.posterUrl || null,
           rating: tmdb?.rating || null,
           releaseDate: tmdb?.releaseDate || null,
@@ -105,7 +137,7 @@ export async function POST(req: Request) {
     );
 
     return NextResponse.json({ movies: enriched });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: "服务器由于情绪过载，稍后再试。" }, { status: 500 });
   }
 }

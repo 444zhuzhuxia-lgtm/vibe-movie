@@ -1,6 +1,5 @@
 "use client";
 
-import { Suspense } from "react";
 import { useEffect, useRef, useState } from "react";
 import NextImage from "next/image";
 import Link from "next/link";
@@ -771,9 +770,12 @@ async function handleGeneratePoster() {
           {/* 海报主图与电影名 */}
           <div className="mt-8 flex flex-col items-center shrink-0">
             {selectedMovie.posterUrl ? (
-              <img
+              <NextImage
                 id="poster-img"
                 src={selectedMovie.posterUrl}
+                width={220}
+                height={330}
+                unoptimized
                 crossOrigin="anonymous"
                 alt={selectedMovie.title.en}
                 className="w-[220px] h-[330px] object-cover rounded-2xl shadow-2xl shadow-blue-900/30 border border-white/10"
