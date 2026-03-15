@@ -1,10 +1,12 @@
 "use client";
 
+import { Suspense } from "react";
 import { useEffect, useRef, useState } from "react";
 import NextImage from "next/image";
 import Link from "next/link";
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
+import { toJpeg } from "html-to-image";
 import { twMerge } from "tailwind-merge";
 
 import type { QuestionItem, QuestionsResponse } from "./api/questions/route";
@@ -420,9 +422,6 @@ async function handleGeneratePoster() {
           }
       }
 
-      // 2. 弃用 html2canvas，使用现代的 html-to-image，完美兼容 oklch/lab 颜色
-      const { toJpeg } = await import("html-to-image");
-      
       const dataUrl = await toJpeg(posterRef.current, {
         quality: 0.92,
         pixelRatio: 2, // 乘以2，保证生成的海报是超高清的
@@ -433,7 +432,17 @@ async function handleGeneratePoster() {
       setIsPosterOpen(true);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "海报生成失败，请稍后再试。";
-      setPosterError("渲染出错: " + msg);
+      const lowerMsg = msg.toLowerCase();
+      const isChunkError =
+        lowerMsg.includes("failed to fetch dynamically imported module") ||
+        lowerMsg.includes("loading chunk") ||
+        lowerMsg.includes("chunkloaderror") ||
+        lowerMsg.includes("importing a module script failed");
+      setPosterError(
+        isChunkError
+          ? "资源加载失败，请刷新页面后重试海报生成。若在 Netlify 发生，请确认站点可用且资源未被暂停。"
+          : "渲染出错: " + msg
+      );
     } finally {
       setIsPosterGenerating(false);
     }

@@ -49,6 +49,7 @@ export default function ArchivePage() {
   const [isPublic, setIsPublic] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [isVisibilitySaving, setIsVisibilitySaving] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -58,10 +59,25 @@ export default function ArchivePage() {
   }, []);
 
   async function fetchRecords() {
-    const res = await fetch("/api/archive");
-    const data = await res.json();
-    if (Array.isArray(data)) {
+    try {
+      setLoadError(null);
+      const res = await fetch("/api/archive", { cache: "no-store" });
+      if (!res.ok) {
+        throw new Error(`请求失败 (${res.status})`);
+      }
+      const contentType = res.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        throw new Error("服务响应异常，请稍后重试");
+      }
+      const data = await res.json();
+      if (!Array.isArray(data)) {
+        throw new Error("返回数据格式错误");
+      }
       setRecords(data);
+    } catch (error) {
+      console.error("Failed to load archive:", error);
+      setLoadError("档案加载失败，请稍后刷新重试。若部署在 Netlify，请确认站点当前可访问。");
+      setRecords([]);
     }
   }
 
@@ -174,6 +190,11 @@ export default function ArchivePage() {
             </button>
           </div>
         </header>
+        {loadError && (
+          <div className="mb-6 rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+            {loadError}
+          </div>
+        )}
 
         {/* 日历控制 */}
         <div className="flex items-center justify-between mb-8 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4">
