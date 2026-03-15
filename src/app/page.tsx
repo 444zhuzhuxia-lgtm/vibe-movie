@@ -25,7 +25,32 @@ function compactText(text: string, maxChars: number) {
   return `${clipped.trimEnd()}…`;
 }
 
-const STAGE_BACKGROUND_IMAGE = "/backgrounds/stage-consistent-bg.svg";
+const moodBackgrounds: Record<string, string> = {
+  ocean: "/backgrounds/mood-ocean.jpg",
+  forest: "/backgrounds/mood-forest.jpg",
+  night: "/backgrounds/mood-night.jpg",
+  rain: "/backgrounds/mood-rain.jpg",
+  space: "/backgrounds/mood-space.jpg",
+  deep: "/backgrounds/mood-night.jpg",
+  healing: "/backgrounds/mood-forest.jpg",
+};
+
+type LutPreset = "cinematic" | "wkw" | "blade";
+
+const LUT_PRESETS: Record<LutPreset, string> = {
+  cinematic:
+    "linear-gradient(145deg, rgba(6,14,34,0.76) 0%, rgba(8,18,42,0.68) 46%, rgba(4,10,26,0.82) 100%), radial-gradient(circle at 20% 18%, rgba(56,189,248,0.15) 0%, rgba(56,189,248,0) 40%), radial-gradient(circle at 82% 84%, rgba(99,102,241,0.16) 0%, rgba(99,102,241,0) 44%)",
+  wkw:
+    "linear-gradient(150deg, rgba(20,8,12,0.72) 0%, rgba(46,18,28,0.58) 42%, rgba(14,8,14,0.78) 100%), radial-gradient(circle at 18% 24%, rgba(244,114,182,0.2) 0%, rgba(244,114,182,0) 42%), radial-gradient(circle at 78% 82%, rgba(250,204,21,0.16) 0%, rgba(250,204,21,0) 46%)",
+  blade:
+    "linear-gradient(145deg, rgba(4,18,26,0.78) 0%, rgba(6,30,38,0.62) 45%, rgba(4,10,16,0.84) 100%), radial-gradient(circle at 20% 18%, rgba(34,211,238,0.2) 0%, rgba(34,211,238,0) 40%), radial-gradient(circle at 82% 84%, rgba(249,115,22,0.2) 0%, rgba(249,115,22,0) 44%)",
+};
+
+const LUT_LABELS: Record<LutPreset, string> = {
+  cinematic: "CINEMA",
+  wkw: "WKW",
+  blade: "BLADE",
+};
 
 // 胶片颗粒 SVG (超低透明度, 全屏叠加)
 function FilmGrain() {
@@ -193,11 +218,12 @@ export default function Home() {
   const [isPosterGenerating, setIsPosterGenerating] = useState(false);
   const [isPosterOpen, setIsPosterOpen] = useState(false);
   const [posterError, setPosterError] = useState<string | null>(null);
+  const [lutPreset, setLutPreset] = useState<LutPreset>("cinematic");
 
   // 图片预加载引擎：在组件首次挂载时静默下载所有背景图到浏览器缓存
   useEffect(() => {
     const preloadImages = () => {
-      const imageUrls = [STAGE_BACKGROUND_IMAGE];
+      const imageUrls = Array.from(new Set(Object.values(moodBackgrounds)));
       imageUrls.forEach((url) => {
         // 使用类型断言解决TypeScript错误
         const img = new window.Image();
@@ -212,6 +238,17 @@ export default function Home() {
 
     preloadImages();
   }, []);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("vibe_lut_preset");
+    if (saved === "cinematic" || saved === "wkw" || saved === "blade") {
+      setLutPreset(saved);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("vibe_lut_preset", lutPreset);
+  }, [lutPreset]);
 
   useEffect(() => {
     // 检查是否有存储的状态需要恢复
@@ -253,6 +290,10 @@ export default function Home() {
 
     return () => clearTimeout(t);
   }, [step]);
+
+  const currentStageBackground =
+    moodBackgrounds[moodCategory] || moodBackgrounds.ocean;
+  const activeLutOverlay = LUT_PRESETS[lutPreset];
 
   // 当进入 Step 7 且选定了电影时，自动保存记录
   useEffect(() => {
@@ -446,6 +487,24 @@ async function handleGeneratePoster() {
       <DeepGradientBG />
       <FilmGrain />
       <NavigationBar step={step} setStep={setStep} />
+      <div className="fixed right-3 top-20 z-[60] rounded-2xl border border-white/10 bg-slate-950/55 p-1.5 backdrop-blur-md">
+        <div className="flex items-center gap-1">
+          {(["cinematic", "wkw", "blade"] as LutPreset[]).map((preset) => (
+            <button
+              key={preset}
+              onClick={() => setLutPreset(preset)}
+              className={cn(
+                "rounded-xl px-2.5 py-1.5 text-[10px] font-bold tracking-[0.2em] transition-all",
+                lutPreset === preset
+                  ? "bg-sky-400/20 text-sky-200"
+                  : "text-slate-400 hover:text-white hover:bg-white/10"
+              )}
+            >
+              {LUT_LABELS[preset]}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Step 2: 视觉共鸣区 (新) */}
       {step === 2 && (
@@ -457,7 +516,8 @@ async function handleGeneratePoster() {
           <div 
             className="absolute inset-0 bg-cover bg-center transition-transform duration-[12000ms] ease-linear scale-110 bg-slate-900"
             style={{ 
-              backgroundImage: `url(${STAGE_BACKGROUND_IMAGE})`,
+              backgroundImage: `${activeLutOverlay}, url(${currentStageBackground})`,
+              backgroundBlendMode: "normal, screen, soft-light, normal",
               transform: stepVisible ? "scale(1)" : "scale(1.15)"
             }}
           />
@@ -501,7 +561,11 @@ async function handleGeneratePoster() {
         >
           <div
             className="absolute inset-0 bg-cover bg-center transition-transform duration-[12000ms] ease-linear scale-110 bg-slate-900"
-            style={{ backgroundImage: `url(${STAGE_BACKGROUND_IMAGE})`, transform: stepVisible ? "scale(1)" : "scale(1.15)" }}
+            style={{
+              backgroundImage: `${activeLutOverlay}, url(${currentStageBackground})`,
+              backgroundBlendMode: "normal, screen, soft-light, normal",
+              transform: stepVisible ? "scale(1)" : "scale(1.15)"
+            }}
           />
           <div className="absolute inset-0 bg-[#020617]/70 backdrop-blur-[2px]" />
           <p

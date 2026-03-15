@@ -1,0 +1,48 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1920" height="1080" fill="#07111E"/>
+  <rect width="1920" height="1080" fill="url(#rain-bg)"/>
+  <ellipse cx="960" cy="140" rx="940" ry="280" fill="url(#cloudlight)" opacity="0.55"/>
+  <g opacity="0.34" stroke="#93C5FD" stroke-width="2">
+    <line x1="180" y1="80" x2="120" y2="220"/>
+    <line x1="280" y1="40" x2="220" y2="190"/>
+    <line x1="420" y1="100" x2="360" y2="250"/>
+    <line x1="560" y1="20" x2="500" y2="170"/>
+    <line x1="700" y1="130" x2="640" y2="280"/>
+    <line x1="860" y1="70" x2="800" y2="220"/>
+    <line x1="1020" y1="40" x2="960" y2="190"/>
+    <line x1="1160" y1="120" x2="1100" y2="270"/>
+    <line x1="1310" y1="60" x2="1250" y2="210"/>
+    <line x1="1460" y1="100" x2="1400" y2="250"/>
+    <line x1="1610" y1="40" x2="1550" y2="190"/>
+    <line x1="1760" y1="120" x2="1700" y2="270"/>
+  </g>
+  <rect y="700" width="1920" height="380" fill="url(#wet-ground)" opacity="0.72"/>
+  <rect width="1920" height="1080" fill="url(#grain)" opacity="0.1"/>
+  <defs>
+    <linearGradient id="rain-bg" x1="0" y1="0" x2="1920" y2="1080" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0A1628"/>
+      <stop offset="0.5" stop-color="#10243A"/>
+      <stop offset="1" stop-color="#1B324A"/>
+    </linearGradient>
+    <radialGradient id="cloudlight" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(960 140) rotate(90) scale(280 940)">
+      <stop stop-color="#BAE6FD" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#BAE6FD" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="wet-ground" x1="960" y1="700" x2="960" y2="1080" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F172A" stop-opacity="0"/>
+      <stop offset="1" stop-color="#060C17"/>
+    </linearGradient>
+    <pattern id="grain" x="0" y="0" width="140" height="140" patternUnits="userSpaceOnUse">
+      <circle cx="12" cy="10" r="1" fill="#FFFFFF"/>
+      <circle cx="34" cy="24" r="1" fill="#FFFFFF"/>
+      <circle cx="59" cy="15" r="1" fill="#FFFFFF"/>
+      <circle cx="84" cy="27" r="1" fill="#FFFFFF"/>
+      <circle cx="110" cy="19" r="1" fill="#FFFFFF"/>
+      <circle cx="126" cy="35" r="1" fill="#FFFFFF"/>
+      <circle cx="21" cy="45" r="1" fill="#FFFFFF"/>
+      <circle cx="48" cy="39" r="1" fill="#FFFFFF"/>
+      <circle cx="72" cy="51" r="1" fill="#FFFFFF"/>
+      <circle cx="101" cy="43" r="1" fill="#FFFFFF"/>
+    </pattern>
+  </defs>
+</svg>
