@@ -25,13 +25,7 @@ function compactText(text: string, maxChars: number) {
   return `${clipped.trimEnd()}…`;
 }
 
-const MOOD_IMAGES: Record<string, string> = {
-  ocean: "https://images.unsplash.com/photo-1439405326854-014607f694d7?q=80&w=2070",
-  forest: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2071",
-  night: "https://images.unsplash.com/photo-1506703380046-5214dbe50410?q=80&w=2070",
-  rain: "https://images.unsplash.com/photo-1534274988757-a28bf1f554de?q=80&w=2070",
-  space: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=2072",
-};
+const STAGE_BACKGROUND_IMAGE = "/backgrounds/stage-consistent-bg.svg";
 
 // 胶片颗粒 SVG (超低透明度, 全屏叠加)
 function FilmGrain() {
@@ -203,7 +197,7 @@ export default function Home() {
   // 图片预加载引擎：在组件首次挂载时静默下载所有背景图到浏览器缓存
   useEffect(() => {
     const preloadImages = () => {
-      const imageUrls = Object.values(MOOD_IMAGES);
+      const imageUrls = [STAGE_BACKGROUND_IMAGE];
       imageUrls.forEach((url) => {
         // 使用类型断言解决TypeScript错误
         const img = new window.Image();
@@ -463,7 +457,7 @@ async function handleGeneratePoster() {
           <div 
             className="absolute inset-0 bg-cover bg-center transition-transform duration-[12000ms] ease-linear scale-110 bg-slate-900"
             style={{ 
-              backgroundImage: `url(${MOOD_IMAGES[moodCategory] || MOOD_IMAGES["ocean"]})`,
+              backgroundImage: `url(${STAGE_BACKGROUND_IMAGE})`,
               transform: stepVisible ? "scale(1)" : "scale(1.15)"
             }}
           />
@@ -505,9 +499,14 @@ async function handleGeneratePoster() {
             stepVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           )}
         >
+          <div
+            className="absolute inset-0 bg-cover bg-center transition-transform duration-[12000ms] ease-linear scale-110 bg-slate-900"
+            style={{ backgroundImage: `url(${STAGE_BACKGROUND_IMAGE})`, transform: stepVisible ? "scale(1)" : "scale(1.15)" }}
+          />
+          <div className="absolute inset-0 bg-[#020617]/70 backdrop-blur-[2px]" />
           <p
             className={cn(
-              "font-light tracking-[0.2em] text-center max-w-xl",
+              "relative z-10 font-light tracking-[0.2em] text-center max-w-xl",
               "text-2xl md:text-3xl text-slate-400 italic font-serif",
               "bg-clip-text text-transparent bg-gradient-to-b from-slate-100 to-slate-500"
             )}
